@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<!-- browser-sync start --server --browser "Google Chrome" --files "resource/*.css, *.html, dist/*.js" -->
+
+<head>
+    <meta charset="UTF-8">
+    <title>Right Regex</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script> -->
+
+    <!-- 为什么这个就不行 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+
+    <link rel="stylesheet" href="./resource/bootstrap.min.css">
+    <script src="./resource/jquery.min.js"></script>
+    <script src="./resource/popper.min.js"></script>
+    <script src="./resource/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="./resource/style.css">
+</head>
+
+<body>
+    <div class="bg-light" style="height: 100vh">
+        <div class="container">
+            <div>
+                <h2 class="text-center">Right Regex</h1>
+            </div>
+
+            <div class="card">
+                <div class="card-body" style="height: 270px">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="regex-type" id="inlineRadio1" value="literal"
+                            checked>
+                        <label class="form-check-label" for="inlineRadio1">Regex Literal</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="regex-type" id="inlineRadio2" value="string">
+                        <label class="form-check-label" for="inlineRadio2">Regex From String</label>
+                    </div>
+                    <div id="regex-string-div">
+                        <div class="m-1 d-flex flex-row bd-highlight">
+                            <p style="font-family: Courier New, Courier, monospace; padding: .375rem .75rem;">
+                                new&nbspRegex("</p>
+                            <input class="form-control" id="regex-string-field" type="text" spellcheck="false"
+                                placeholder="Enter Regex Expression Here"
+                                style="font-family: Courier New, Courier, monospace">
+                            <p style="font-family: Courier New, Courier, monospace; padding: .375rem .75rem;">","</p>
+                            <select id="regex-string-mode-select" class="custom-select custom-select-md mb-1" style="width: 75px">
+                                <option value="g">g</option>
+                                <option value="gi">gi</option>
+                                <option selected value="gm">gm</option>
+                                <option value="gmi">gmi</option>
+                              </select>
+                            <!-- <input class="form-control" id="regex-string-mode-field" type="text" value="gm" maxlength="3" spellcheck="false"
+                                style="font-family: Courier New, Courier, monospace; width: 55px;"> -->
+                            <p style="font-family: Courier New, Courier, monospace; padding: .375rem .75rem;">")</p>
+                        </div>
+                    </div>
+                    <div id="regex-literal-div">
+                        <div class="m-1 d-flex flex-row bd-highlight">
+                            <p style="font-family: Courier New, Courier, monospace; padding: .375rem .75rem;">/</p>
+                            <input class="form-control" id="regex-literal-field" type="text" spellcheck="false"
+                                placeholder="Enter Regex Expression Here"
+                                style="font-family: Courier New, Courier, monospace">
+                            <p style="font-family: Courier New, Courier, monospace; padding: .375rem .75rem;">/</p>
+                            <select id="regex-literal-mode-select" class="custom-select custom-select-md mb-1" style="width: 75px">
+                                <option value="g">g</option>
+                                <option value="gi">gi</option>
+                                <option selected value="gm">gm</option>
+                                <option value="gmi">gmi</option>
+                              </select>
+                            <!-- <input class="form-control" id="regex-literal-mode-field" type="text" value="gm" maxlength="3" spellcheck="false"
+                                style="font-family: Courier New, Courier, monospace; width: 55px;"> -->
+                        </div>
+                    </div>
+                    <h5>Compiling Information</h5>
+                    <div id="compile-info-div" class="overflow-auto" style="height: 120px">
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="card" style="height: 500px">
+                        <div class="card-header">Tree Representation</div>
+                        <div class="card-body my-pane" style="overflow: auto">
+                            <ul id="myUL" style="font-family: Courier New, Courier, monospace">
+                                <li><span>no regex</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-8">
+                    <div class="card" style="height: 500px">
+
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                                    aria-controls="home" aria-selected="true">Test String</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab"
+                                    aria-controls="profile" aria-selected="false">Match Process</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+
+                                <div class="m-1 d-flex flex-row-reverse bd-highlight">
+                                    <a href="#" data-toggle="popover"
+                                        data-content="For validating, we recommond wrapping your regex with ^ and $ while turning on the mode 'gm'.">
+                                        <i class="far fa-question-circle"></i>
+                                    </a>
+
+                                    <button id="generate-button"type="button" class="mx-1 btn btn-outline-primary btn-sm">generate</button>
+
+                                    <input class="form-control" id="base-string" type="text" spellcheck="false"
+                                        placeholder="base string (min-length 3, default 'regex')"
+                                        style="font-family: Courier New, Courier, monospace">
+
+                                </div>
+
+                                <div class="m-1" style="position: relative">
+                                    <div class="backdrop">
+                                        <div class="highlights">
+                                        </div>
+                                    </div>
+                                    <textarea spellcheck="false"
+                                        class="my-textarea form-control">To be completely honest with you, I have absolutely no control over what is possible to happen in my futre. Something unexpected always happens, coming out of nowhere, like a thunderbolt. And I feel stricken. To be completely honest with you, I have absolutely no control over what is possible to happen in my futre. Something unexpected always happens, coming out of nowhere, like a thunderbolt. And I feel stricken. To be completely honest with you, I have absolutely no control over what is possible to happen in my futre. Something unexpected always happens, coming out of nowhere, like a thunderbolt. And I feel stricken. To be completely honest with you, I have absolutely no control over what is possible to happen in my futre. Something unexpected always happens, coming out of nowhere, like a thunderbolt. And I feel stricken. To be completely honest with you, I have absolutely no control over what is possible to happen in my futre. Something unexpected always happens, coming out of nowhere, like a thunderbolt. And I feel stricken. To be completely honest with you, I have absolutely no control over what is possible to happen in my futre. Something unexpected always happens, coming out of nowhere, like a thunderbolt. And I feel stricken.</textarea>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="m-1 d-flex flex-row-reverse bd-highlight">
+                                    <button type="button" id="proceed-button" class="mx-1 btn btn-outline-primary btn-sm">proceed</button>
+
+                                    <input class="form-control" id="debug-field" type="text" placeholder="debug string" spellcheck="false"
+                                        style="font-family: Courier New, Courier, monospace">
+                                </div>
+
+                                <div class="debug-area"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        // TODO 为什么这个移到init里面就不行了，popover还老是报错
+        $('[data-toggle="popover"]').popover();
+    </script>
+    <script src="./dist/bundle.js"></script>
+</body>
+
+</html>
+
+
+<!-- <li><span class="mycaret">regex</span> -->
+<!-- <ul class="nested">
+    <li>Water</li>
+    <li>Coffee</li>
+    <li><span class="mycaret">Tea</span>
+        <ul class="nested">
+            <li>Black Tea</li>
+            <li>White Tea</li>
+            <li><span class="mycaret">Green Tea</span>
+                <ul class="nested">
+                    <li>Sencha</li>
+                    <li>Gyokuro</li>
+                    <li>Matcha</li>
+                    <li>Pi Lo Chun</li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul> -->
