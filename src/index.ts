@@ -10,7 +10,7 @@ import { puncts, warnings } from "./regex/util";
 
 $(document).ready(() => init());
 
-// let re = processRegex("(.*\\.([wW][mM][aA])|([mM][pP][3])$)", true);
+// let re = processRegex("(?=abc(?!123))\\w*", true);
 // let nfa = construct(re);
 
 // let _puncts = puncts;
@@ -18,13 +18,13 @@ $(document).ready(() => init());
 
 // _warnings.forEach(x => console.log(x));
 
-// let strs = generate(re);
-// strs.forEach(x => console.log(x));
-// console.log();
+// // let strs = generate(re);
+// // strs.forEach(x => console.log(x));
+// // console.log();
 
-// // // printNFA(nfa);
-// let boo = match(nfa, "<?xml regex?><regex>regex</regex>\n");
-// console.log();
+// // printNFA(nfa);
+// let boo = match(nfa, "abc123");
+// console.log(boo);
 
 
 // Regexp?Buddy is (aweful|acceptable|awesome)

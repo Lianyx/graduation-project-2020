@@ -25,6 +25,7 @@ let $debug_field = $('#debug-field')
 
 let regex: Regex = processRegex("", true);
 let applyHighlights: (text: string) => string = (text) => text;
+let lineNo = 1;
 
 /*
 拿到regex，并判断是否是literal还是string
@@ -117,15 +118,21 @@ export function init() {
             let nfa = construct(regex);
 
             $debug_area.html("");
+            lineNo = 1;
             let boo = match(nfa, debug_str, 0, (s) => {
-                $debug_area.html($debug_area.html() + s + "<br>");
+                printToDebugAreaWithLineNo(s);
             });
+
+            // <span style="font: bold 12px/30px Georgia, serif;">12</span>
+            // <span style="color: #007bff">this time it is about color</span>
 
             $debug_area.html($debug_area.html() + "<br>");
             if (boo === -1) {
-                $debug_area.html($debug_area.html() + "find no match from index 0" + "<br>");
+                $debug_area.html($debug_area.html() + `<span style="color: #007bff">find no match from index 0</span>`);
+            } else if (boo === -2) {
+                $debug_area.html($debug_area.html() + "..." + "<br>" + `<span style="color: #007bff">Program halts. Possibly catastrophic backtracking occurs.</span>`);
             } else {
-                $debug_area.html($debug_area.html() + `find match string from index 0 to ${boo}: "${debug_str.substring(0, boo + 1)}"` + "<br>");
+                $debug_area.html($debug_area.html() + `<span style="color: #007bff">find match string from index 0 to ${boo}: ${debug_str.substring(0, boo + 1)}</span>`);
             }
         }
     });
@@ -221,4 +228,13 @@ function handleScroll() {
 
     var scrollLeft = $textarea.scrollLeft();
     $backdrop.scrollLeft(scrollLeft!);
+}
+
+function printToDebugAreaWithLineNo(s: string) {
+    let current = $debug_area.html();
+    if (current === "") {
+        $debug_area.html(`<span style="font: bold 12px Georgia, serif;">${lineNo++}</span>` + "\t" + s);
+    } else {
+        $debug_area.html(current + "<br>" + `<span style="font: bold 12px Georgia, serif;">${lineNo++}</span>` + "\t" + s);
+    }
 }

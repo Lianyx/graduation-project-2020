@@ -238,7 +238,7 @@ function gen(node: Node): GenResult {
                     mut = candidate.mut.map(fs => [
                         () => {
                             let temp = "";
-                            for(const f of fs) {
+                            for (const f of fs) {
                                 temp += f();
                             }
                             group_to_string.set(node.name, temp);
@@ -262,7 +262,7 @@ function gen(node: Node): GenResult {
                     mut = candidate.mut.map(fs => [
                         () => {
                             let temp = "";
-                            for(const f of fs) {
+                            for (const f of fs) {
                                 temp += f();
                             }
                             group_to_string.set(node.num, temp);
@@ -398,7 +398,7 @@ function genFromCharClass(cc: CharClass): GenResult {
                 case ItemType.RANGE: {
                     if (!isIn(cc, String.fromCharCode(ci.range.from))) {
                         retMutSet.add(String.fromCharCode(ci.range.from));
-                    }                    
+                    }
                 }
             }
         }
