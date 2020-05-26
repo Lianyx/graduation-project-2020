@@ -290,7 +290,7 @@ function _is_proper_range(range: Range) {
     return "0".charCodeAt(0) <= range.from && range.to <= "9".charCodeAt(0)
         || "a".charCodeAt(0) <= range.from && range.to <= "z".charCodeAt(0)
         || "A".charCodeAt(0) <= range.from && range.to <= "Z".charCodeAt(0)
-        || !isProperRangeBoundary(range.from) && !isProperRangeBoundary(range.to);
+        || !isProperRangeBoundary(range.from) && !isProperRangeBoundary(range.to) && range.from > 255 && range.to > 255
 }
 
 function isProperRangeBoundary(cn: number) {

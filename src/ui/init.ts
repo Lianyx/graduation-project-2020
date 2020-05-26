@@ -1,10 +1,10 @@
 import { processRegex, Regex } from "../regex/regex";
 import { generateTree } from "./tree";
 import { construct } from "../regex/nfa";
-import { match } from "../regex/match";
+import { match, MatchResultType } from "../regex/match";
 import { generate } from "../regex/generate";
 import $ = require("jquery");
-import { InternalError, UngrammaticalError, warnings, suggestions, sample } from "../regex/util";
+import { InternalError, UngrammaticalError, warnings, suggestions, sample, matchProcessLines, MatchProcessLine, MatchProcessData, MatchProcessDataType } from "../regex/util";
 
 let $regex_string_field = $('#regex-string-field');
 let $regex_literal_field = $('#regex-literal-field');
@@ -25,7 +25,7 @@ let $debug_field = $('#debug-field')
 
 let regex: Regex = processRegex("", true);
 let applyHighlights: (text: string) => string = (text) => text;
-let lineNo = 1;
+// let lineNo = 1;
 
 /*
 拿到regex，并判断是否是literal还是string
@@ -115,24 +115,23 @@ export function init() {
             let debug_str = $debug_field.val() as string;
             console.log("debug string: " + debug_str);
 
-            let nfa = construct(regex);
-
             $debug_area.html("");
-            lineNo = 1;
-            let boo = match(nfa, debug_str, 0, (s) => {
-                printToDebugAreaWithLineNo(s);
-            });
+            let boo = match(regex, debug_str, getModifiers(), 0)
+            // (s) => {
+            //     printToDebugAreaWithLineNo(s);
+            // });
+            showMatchProcessLines()
 
             // <span style="font: bold 12px/30px Georgia, serif;">12</span>
             // <span style="color: #007bff">this time it is about color</span>
 
-            $debug_area.html($debug_area.html() + "<br>");
-            if (boo === -1) {
+            $debug_area.html($debug_area.html() + "<br><br>");
+            if (boo.mrType === MatchResultType.NON_MATCH) {
                 $debug_area.html($debug_area.html() + `<span style="color: #007bff">find no match from index 0</span>`);
-            } else if (boo === -2) {
+            } else if (boo.mrType === MatchResultType.TIMEOUT) {
                 $debug_area.html($debug_area.html() + "..." + "<br>" + `<span style="color: #007bff">Program halts. Possibly catastrophic backtracking occurs.</span>`);
             } else {
-                $debug_area.html($debug_area.html() + `<span style="color: #007bff">find match string from index 0 to ${boo}: ${debug_str.substring(0, boo + 1)}</span>`);
+                $debug_area.html($debug_area.html() + `<span style="color: #007bff">find match string from index 0 to ${boo.loc.end}: ${debug_str.substring(boo.loc.begin, boo.loc.end).replace(/&/gm, '&amp;').replace(/<(?!\/?mark>)/gm, '&lt;')}</span>`);
             }
         }
     });
@@ -230,11 +229,36 @@ function handleScroll() {
     $backdrop.scrollLeft(scrollLeft!);
 }
 
-function printToDebugAreaWithLineNo(s: string) {
-    let current = $debug_area.html();
-    if (current === "") {
-        $debug_area.html(`<span style="font: bold 12px Georgia, serif;">${lineNo++}</span>` + "\t" + s);
-    } else {
-        $debug_area.html(current + "<br>" + `<span style="font: bold 12px Georgia, serif;">${lineNo++}</span>` + "\t" + s);
+function showMatchProcessLines() {
+    let innerHTML = ""
+    for (let i = 0; i < matchProcessLines.length; i++) {
+        const line = matchProcessLines[i]        
+        if (i !== 0) {
+            innerHTML += "<br>"
+        }
+        innerHTML += `<span style="font: bold 12px Georgia, serif;">${i+1}</span>` + "\t" + lineToStr(line)
+    }
+    $debug_area.html(innerHTML)
+}
+
+function dataToStr(data: MatchProcessData): string {
+    switch(data.type) {
+        case MatchProcessDataType.CONTENT:
+            return data.content.replace(/&/gm, '&amp;').replace(/<(?!\/?mark>)/gm, '&lt;')
+        case MatchProcessDataType.DIRECTIVE:
+            return `<span style="color: #007bff">${data.directive}</span>`
     }
 }
+
+function lineToStr(line: MatchProcessLine): string {
+    return line.map(dataToStr).reduce((a, b) => a + " " + b)
+}
+
+// function printToDebugAreaWithLineNo(s: string) {
+//     let current = $debug_area.html();
+//     if (current === "") {
+//         $debug_area.html(`<span style="font: bold 12px Georgia, serif;">${lineNo++}</span>` + "\t" + s.replace(/&/gm, '&amp;').replace(/<(?!\/?mark>)/gm, '&lt;'));
+//     } else {
+//         $debug_area.html(current + "<br>" + `<span style="font: bold 12px Georgia, serif;">${lineNo++}</span>` + "\t" + s.replace(/&/gm, '&amp;').replace(/<(?!\/?mark>)/gm, '&lt;'));
+//     }
+// }

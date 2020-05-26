@@ -1,6 +1,6 @@
 import { CharClass } from "./charclass";
 import { IntPair, Quantifier, LookaroundType, GroupType } from "./types";
-import { ParsedRegex } from "./regex";
+import { ParsedRegex, shorthandToStr } from "./regex";
 import { Node, NodeType } from "./parse";
 
 export enum EdgeType {
@@ -208,20 +208,36 @@ function alternate(nfas: NFA[]): NFA {
 }
 
 function iterate(nfa: NFA, qt: Quantifier) {
+    if (qt.floor === 0 && qt.ceil === 0) {
+        return emptyNFA();
+    }
+
+    if (qt.floor === 0) { // qt.ceil > 0 || qt.ceil === -1
+        if (qt.ceil === -1) {
+            return (qt.lazy ? _lazy_asterisk : _asterisk)(nfa)
+        } else {
+            let sur = (qt.lazy ? _lazy_optional : _optional)(nfa); // 只有这个是原nfa真身
+            for (let i = 1; i < qt.ceil - qt.floor; i++) {
+                let cloned = cloneNFA(nfa);
+                sur = (qt.lazy ? _lazy_optional : _optional)(concatenate([cloned, sur]));
+            }
+            return sur
+        }
+    }
+
+    // qt.floor > 0, qt.ceil > 0
     let tmp: NFA[] = [];
-    for (let i = 0; i < qt.floor; i++) {
+    for (let i = 0; i < qt.floor - 1; i++) { // 改成 -1
         tmp.push(cloneNFA(nfa));
     }
     let pre = concatenate(tmp);
 
-    // (qt.lazy ? _lazy_asterisk : _asterisk)
-    // (qt.lazy ? _lazy_optional : _optional)
-
     if (qt.ceil === -1) {
-        return concatenate([pre, (qt.lazy ? _lazy_asterisk : _asterisk)(nfa)]); // 只有这个是原nfa真身
+        return concatenate([pre, (qt.lazy ? _lazy_plus : _plus)(nfa)])
     } else if (qt.ceil === qt.floor) {
-        return pre;
+        return concatenate([pre, cloneNFA(nfa)])
     } else {
+        pre = concatenate([pre, cloneNFA(nfa)])
         let sur = (qt.lazy ? _lazy_optional : _optional)(nfa); // 只有这个是原nfa真身
         for (let i = 1; i < qt.ceil - qt.floor; i++) {
             let cloned = cloneNFA(nfa);
@@ -229,11 +245,32 @@ function iterate(nfa: NFA, qt: Quantifier) {
         }
         return concatenate([pre, sur]);
     }
+
+    // let tmp: NFA[] = [];
+    // for (let i = 0; i < qt.floor; i++) {
+    //     tmp.push(cloneNFA(nfa));
+    // }
+    // let pre = concatenate(tmp);
+
+    // if (qt.ceil === -1) {
+    //     return concatenate([pre, (qt.lazy ? _lazy_asterisk : _asterisk)(nfa)]); // 只有这个是原nfa真身
+    // } else if (qt.ceil === qt.floor) {
+    //     return pre;
+    // } else {
+    //     let sur = (qt.lazy ? _lazy_optional : _optional)(nfa); // 只有这个是原nfa真身
+    //     for (let i = 1; i < qt.ceil - qt.floor; i++) {
+    //         let cloned = cloneNFA(nfa);
+    //         sur = (qt.lazy ? _lazy_optional : _optional)(concatenate([cloned, sur]));
+    //     }
+    //     return concatenate([pre, sur]);
+    // }
 }
 
 function emptyNFA(): NFA {
     let start = newState();
-    let finish = start;
+    // let finish = start; // 如果这样的话，concatenation会出错，因为start和finish是同一个，但是n2全是靠边来连后面的，而start直接被云弃了
+    let finish = newState();
+    start.edges.push({ type: EdgeType.EPSILON, to: finish })
     return { start, finish };
 }
 
@@ -246,6 +283,32 @@ function _asterisk(nfa: NFA): NFA {
 
     nfa.finish.edges.push({ type: EdgeType.EPSILON, to: nfa.start });
     nfa.finish.edges.push({ type: EdgeType.EPSILON, to: finish });
+    nfa.finish.iter_body_end = true;
+
+    return { start, finish };
+}
+
+function _plus(nfa: NFA): NFA {
+    let start = newState();
+    let finish = newState();
+
+    start.edges.push({ type: EdgeType.EPSILON, to: nfa.start });
+
+    nfa.finish.edges.push({ type: EdgeType.EPSILON, to: nfa.start });
+    nfa.finish.edges.push({ type: EdgeType.EPSILON, to: finish });
+    nfa.finish.iter_body_end = true;
+
+    return { start, finish };
+}
+
+function _lazy_plus(nfa: NFA): NFA {
+    let start = newState();
+    let finish = newState();
+
+    start.edges.push({ type: EdgeType.EPSILON, to: nfa.start });
+
+    nfa.finish.edges.push({ type: EdgeType.EPSILON, to: finish });
+    nfa.finish.edges.push({ type: EdgeType.EPSILON, to: nfa.start });
     nfa.finish.iter_body_end = true;
 
     return { start, finish };
@@ -322,6 +385,7 @@ function printEdge(edge: Edge, ids: Map<State, number>): string {
         case EdgeType.BACKREF:
             return "\\i->" + ids.get(edge.to) + " ";
         case EdgeType.SHORTHAND:
+            return shorthandToStr(edge.chr) + "->" + ids.get(edge.to) + " ";
         case EdgeType.BOUNDARY:
         case EdgeType.LOOKAROUND:
             return "";

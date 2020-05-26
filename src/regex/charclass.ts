@@ -17,6 +17,7 @@ export type ClassItem = { loc: IntPair } & (
 export type CharClass = {
     negate?: boolean;
     items: ClassItem[];
+    loc: IntPair
 }
 
 export function isIn(cc: CharClass, chr: string) {
@@ -50,7 +51,7 @@ export function isInShorthand(sh: string, chr: string) {
         case "W":
             return !is_w(chr);
         case ".":
-            return true;
+            return chr !== '\n';
         default:
             return false;
     }

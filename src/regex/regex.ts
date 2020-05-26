@@ -1,8 +1,9 @@
 import { Node, parse } from './parse'
 import { Token, tokenize } from './token'
 import { IntPair } from './types';
-import { UngrammaticalError, warnings } from './util';
+import { UngrammaticalError, warnings, emptyArray, InternalError } from './util';
 import { check } from './warn';
+import { NFA } from './nfa';
 
 export type ParsedRegex = {
     root: Node;
@@ -14,12 +15,13 @@ export type StrAndTokens = {
     str: string;
 }
 
-export type Regex = ParsedRegex & StrAndTokens;
+export type Regex = ParsedRegex & StrAndTokens & {
+    nfa?: NFA
+}
 
 export function processRegex(str: string, isLiteral: boolean): Regex {
-    while (warnings.length !== 0) {
-        warnings.pop();
-    }
+    emptyArray(warnings)
+
     if (!isLiteral) {
         str = str_to_literal(str);
     }
@@ -59,3 +61,19 @@ function str_to_literal(str: string): string {
 // let str = "\\\\s\\\\d\\x";
 // console.log(str);
 // console.log(str_to_literal(str));
+
+export function shorthandToStr(chr: string) {
+    switch (chr) {
+        case ".":
+            return "."
+        case "d":
+        case "D":
+        case "s":
+        case "S":
+        case "w":
+        case "W":
+            return "\\" + chr
+        default:
+            throw new InternalError()
+    }
+}

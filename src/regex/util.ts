@@ -10,6 +10,12 @@ export class InternalError extends Error {
     }
 }
 
+export function emptyArray(x: any[]) {
+    while (x.length !== 0) {
+        x.pop();
+    }
+}
+
 // export class WarningError extends Error {
 //     constructor(...params: any) {
 //         super(...params)
@@ -40,12 +46,6 @@ export function isPunct(chr: string): boolean {
         || 123 <= charCode && charCode <= 126;
 }
 
-export function htmlPreProcess(text: string): string {
-    return text = text
-        .replace(/&/gm, '&amp;')
-        .replace(/</gm, '&lt;');
-}
-
 export function exhaustiveCheck(param: never) { }
 // type A = { type: "a" };
 // type B = { type: "b" };
@@ -63,3 +63,30 @@ export function exhaustiveCheck(param: never) { }
 //         exhaustiveCheck(a);
 //     }
 //   }
+
+
+export function htmlPreProcess(text: string): string {
+    return text = text
+        .replace(/&/gm, '&amp;')
+        .replace(/</gm, '&lt;');
+}
+
+
+export let matchProcessLines: MatchProcessLine[] = []
+
+export enum MatchProcessDataType {
+    CONTENT, DIRECTIVE
+}
+export type MatchProcessData = (
+    | { type: MatchProcessDataType.CONTENT, content: string }
+    | { type: MatchProcessDataType.DIRECTIVE, directive: string }
+)
+export type MatchProcessLine =  MatchProcessData[]
+
+export function newMatchProcessContent(content: string): MatchProcessData {
+    return { type: MatchProcessDataType.CONTENT, content }
+}
+
+export function newMatchProcessDirective(directive: string): MatchProcessData {
+    return { type: MatchProcessDataType.DIRECTIVE, directive }
+}

@@ -289,13 +289,15 @@ function gen(node: Node): GenResult {
             break;
         case NodeType.SHORTHAND:
             if (node.chr === ".") {
-                proper = [[promise("a")], [promise("9")], [promise("Z")], [promise(" ")], [promise(puncts.length > 0 ? random_item(puncts) : "_")]];
+                // TODO add "
+                proper = [[promise("a")], [promise("9")], [promise("Z")], [promise(" ")], [promise(getWildCardPunct())]];
                 mut = [];
                 is_potential_str = 1;
                 break;
             } else {
                 return genFromCharClass({
-                    items: [{ type: ItemType.SHORTHAND, chr: node.chr, loc: { begin: -1, end: -1 } }]
+                    items: [{ type: ItemType.SHORTHAND, chr: node.chr, loc: { begin: -1, end: -1 } }],
+                    loc: { begin: -1, end: -1 }
                 });
             }
     }
@@ -598,4 +600,13 @@ function gen_digit(node: Node): string {
 
 function isStr(candidate: GenResult, qt: Quantifier): boolean {
     return candidate.is_potential_str !== 0 && (qt.ceil === -1 || qt.ceil >= sample._.length);
+}
+
+function getWildCardPunct() {
+    if (puncts.includes('"')) {
+        return '"'
+    } else if (puncts.includes("'")) {
+        return "'"
+    }
+    return puncts.length > 0 ? random_item(puncts) : "_"
 }

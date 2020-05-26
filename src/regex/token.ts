@@ -1,5 +1,5 @@
 import { IntPair, Quantifier, Backref, LookaroundType, GroupType } from "./types";
-import { UngrammaticalError, InternalError, isPunct, puncts } from "./util";
+import { UngrammaticalError, InternalError, isPunct, puncts, warnings } from "./util";
 import { StrAndTokens } from "./regex";
 
 
@@ -66,7 +66,6 @@ export function tokenize(_regex: string): StrAndTokens {
                         break;
                     // TODO could be more ...
 
-                    // TODO octal and hexadecimal
                     case "x": {
                         if (i + 2 >= regex.length) {
                             throw new UngrammaticalError("ill formed \\xhh construction near index: " + i);
@@ -104,12 +103,14 @@ export function tokenize(_regex: string): StrAndTokens {
                         break;
 
                     // boundary
-                    case "b": // TODO inside class?
-                    case "B":
-                    case "A":
+
+                    case "A": // TODO inside class?
                     case "G":
                     case "Z":
                     case "z":
+                        warnings.push(`boundary \\${c} not fully supported, near index: ${i}`)
+                    case "b":
+                    case "B":
                         if (in_char_class) {
                             throw new UngrammaticalError("Illegal/unsupported escape sequence near index: " + i);
                         }
@@ -426,7 +427,8 @@ export function tokenize(_regex: string): StrAndTokens {
     return { str: _regex, tokens: ret };
 }
 
-// TODO when checking <name>, add not starting with an 9
+// TODO when checking <name>, add not starting with a number
+// TODO name重名？
 function isAlphanumeric(c: string) {
     return 'a' <= c && c <= 'z'
         || 'A' <= c && c <= 'Z'

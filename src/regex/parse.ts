@@ -326,7 +326,8 @@ function charclass(): Node {
         }
     }
 
-    let ret: Node = { type: NodeType.CHARCLASS, loc: { begin: loc_from, end: ++i }, cc: { negate: negate, items: items } };
+    let loc = { begin: loc_from, end: ++i }
+    let ret: Node = { type: NodeType.CHARCLASS, loc, cc: { negate: negate, items: items, loc } };
     check_char_class(st, ret);
     return ret;
 }
